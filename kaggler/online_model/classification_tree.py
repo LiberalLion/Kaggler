@@ -34,9 +34,9 @@ class ClassificationTree(Tree):
         error = gini(self.Y)
         # if the split is any good, the score should be greater than 0
         total = float(len(self.Y))
-        score = (error - 1 / total * (len(split['left']) * left_error +
-                                      len(split['right']) * right_error))
-        return score
+        return error - 1 / total * (
+            len(split['left']) * left_error + len(split['right']) * right_error
+        )
 
     def _apply_best_split(self):
         best_split, best_split_score = self._find_best_split()
@@ -70,17 +70,13 @@ class ClassificationTree(Tree):
         Make prediction recursively. Use both the samples inside the current
         node and the statistics inherited from parent.
         """
-        if self._is_leaf():
-            d1 = self.predict_initialize['count_dict']
-            d2 = count_dict(self.Y)
-            for key, value in d1.items():
-                if key in d2:
-                    d2[key] += value
-                else:
-                    d2[key] = value
-            return argmax(d2)
-        else:
-            if self.criterion(x):
-                return self.right.predict(x)
+        if not self._is_leaf():
+            return self.right.predict(x) if self.criterion(x) else self.left.predict(x)
+        d1 = self.predict_initialize['count_dict']
+        d2 = count_dict(self.Y)
+        for key, value in d1.items():
+            if key in d2:
+                d2[key] += value
             else:
-                return self.left.predict(x)
+                d2[key] = value
+        return argmax(d2)

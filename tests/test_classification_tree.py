@@ -12,8 +12,8 @@ def test():
     data = np.random.randint(0, 1000, size=(N_OBS, N_FEATURE))
     y = np.random.randint(2, size=N_OBS)
 
-    train = data[0:N_OBS // 2]
-    ytrain = y[0:N_OBS // 2]
+    train = data[:N_OBS // 2]
+    ytrain = y[:N_OBS // 2]
     test = data[N_OBS // 2:]
     ytest = y[N_OBS // 2:]
 

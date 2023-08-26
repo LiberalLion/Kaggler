@@ -14,21 +14,21 @@ def test_TargetEncoder(generate_data):
 
     te = TargetEncoder()
     X_cat = te.fit_transform(df[cat_cols], df[TARGET_COL])
-    print('Without CV:\n{}'.format(X_cat.head()))
+    print(f'Without CV:\n{X_cat.head()}')
 
     assert X_cat.shape[1] == len(cat_cols)
 
     cv = KFold(n_splits=N_FOLD, shuffle=True, random_state=RANDOM_SEED)
     te = TargetEncoder(cv=cv)
     X_cat = te.fit_transform(df[cat_cols], df[TARGET_COL])
-    print('With CV (fit_transform()):\n{}'.format(X_cat.head()))
+    print(f'With CV (fit_transform()):\n{X_cat.head()}')
 
     assert X_cat.shape[1] == len(cat_cols)
 
     te = TargetEncoder(cv=cv)
     te.fit(df[cat_cols], df[TARGET_COL])
     X_cat = te.transform(df[cat_cols])
-    print('With CV (fit() and transform() separately):\n{}'.format(X_cat.head()))
+    print(f'With CV (fit() and transform() separately):\n{X_cat.head()}')
 
     assert X_cat.shape[1] == len(cat_cols)
 
@@ -75,20 +75,20 @@ def test_FrequencyEncoder(generate_data):
 
     te = FrequencyEncoder()
     X_cat = te.fit_transform(df[cat_cols])
-    print('Without CV:\n{}'.format(X_cat.head()))
+    print(f'Without CV:\n{X_cat.head()}')
 
     assert X_cat.shape[1] == len(cat_cols)
 
     cv = KFold(n_splits=N_FOLD, shuffle=True, random_state=RANDOM_SEED)
     te = FrequencyEncoder(cv=cv)
     X_cat = te.fit_transform(df[cat_cols])
-    print('With CV (fit_transform()):\n{}'.format(X_cat.head()))
+    print(f'With CV (fit_transform()):\n{X_cat.head()}')
 
     assert X_cat.shape[1] == len(cat_cols)
 
     te = FrequencyEncoder(cv=cv)
     te.fit(df[cat_cols])
     X_cat = te.transform(df[cat_cols])
-    print('With CV (fit() and transform() separately):\n{}'.format(X_cat.head()))
+    print(f'With CV (fit() and transform() separately):\n{X_cat.head()}')
 
     assert X_cat.shape[1] == len(cat_cols)

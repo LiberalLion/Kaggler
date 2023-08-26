@@ -20,7 +20,7 @@ def test_automl():
                            n_features=N_FEATURE,
                            n_informative=N_IMP_FEATURE,
                            random_state=RANDOM_SEED)
-    X = pd.DataFrame(X, columns=['x{}'.format(i) for i in range(X.shape[1])])
+    X = pd.DataFrame(X, columns=[f'x{i}' for i in range(X.shape[1])])
     y = pd.Series(y)
     logging.info(X.shape, y.shape)
 

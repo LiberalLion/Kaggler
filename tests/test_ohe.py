@@ -13,9 +13,10 @@ N_CATEGORY = 1000
 
 
 def test():
-    df = pd.DataFrame(np.random.randint(0, N_CATEGORY,
-                                        size=(N_OBS, N_FEATURE)),
-                      columns=['c{}'.format(x) for x in range(N_FEATURE)])
+    df = pd.DataFrame(
+        np.random.randint(0, N_CATEGORY, size=(N_OBS, N_FEATURE)),
+        columns=[f'c{x}' for x in range(N_FEATURE)],
+    )
     profiler = cProfile.Profile(subcalls=True, builtins=True, timeunit=.001)
     ohe = OneHotEncoder(min_obs=100)
     profiler.enable()
@@ -23,7 +24,7 @@ def test():
     X_new = ohe.transform(df)
     profiler.disable()
     profiler.print_stats()
-    print('{} --> {}'.format(df.shape, X_new.shape))
+    print(f'{df.shape} --> {X_new.shape}')
 
 
 if __name__ == '__main__':

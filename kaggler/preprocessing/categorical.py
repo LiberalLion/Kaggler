@@ -40,7 +40,7 @@ class LabelEncoder(base.BaseEstimator):
         self.min_obs = min_obs
 
     def __repr__(self):
-        return ('LabelEncoder(min_obs={})').format(self.min_obs)
+        return f'LabelEncoder(min_obs={self.min_obs})'
 
     def _get_label_encoder_and_max(self, x):
         """Return a mapping from values and its maximum of a column to integer labels.
@@ -158,7 +158,7 @@ class OneHotEncoder(base.BaseEstimator):
         self.label_encoder = LabelEncoder(min_obs)
 
     def __repr__(self):
-        return ('OneHotEncoder(min_obs={})').format(self.min_obs)
+        return f'OneHotEncoder(min_obs={self.min_obs})'
 
     def _transform_col(self, x, i):
         """Encode one categorical column into sparse matrix with one-hot-encoding.
@@ -206,14 +206,8 @@ class OneHotEncoder(base.BaseEstimator):
         for i, col in enumerate(X.columns):
             X_col = self._transform_col(X[col], i)
             if X_col is not None:
-                if i == 0:
-                    X_new = X_col
-                else:
-                    X_new = sparse.hstack((X_new, X_col))
-
-            logger.debug('{} --> {} features'.format(
-                col, self.label_encoder.label_maxes[i])
-            )
+                X_new = X_col if i == 0 else sparse.hstack((X_new, X_col))
+            logger.debug(f'{col} --> {self.label_encoder.label_maxes[i]} features')
 
         return X_new
 
@@ -259,7 +253,7 @@ class TargetEncoder(base.BaseEstimator):
         self.cv = cv
 
     def __repr__(self):
-        return('TargetEncoder(smoothing={}, min_samples={}, cv={})'.format(self.smoothing, self.min_samples, self.cv))
+        return f'TargetEncoder(smoothing={self.smoothing}, min_samples={self.min_samples}, cv={self.cv})'
 
     def _get_target_encoder(self, x, y):
         """Return a mapping from categories to average target values.
@@ -437,7 +431,7 @@ class EmbeddingEncoder(base.BaseEstimator):
             num_inputs = Input(shape=(len(num_cols),), name='num_inputs')
             merged_input = Concatenate(axis=1)(embeddings + [num_inputs])
 
-            inputs = inputs + [num_inputs]
+            inputs += [num_inputs]
         else:
             merged_input = Concatenate(axis=1)(embeddings)
 
@@ -536,15 +530,13 @@ class EmbeddingEncoder(base.BaseEstimator):
             self.embs = []
             for i, col in enumerate(self.cat_cols):
                 self.embs.append(model.get_layer(col + EMBEDDING_SUFFIX).get_weights()[0])
-                logger.debug('{}: {}'.format(col, self.embs[i].shape))
+                logger.debug(f'{col}: {self.embs[i].shape}')
 
     def transform(self, X):
         X_cat = self.lbe.transform(X[self.cat_cols])
-        X_emb = []
-
-        for i, col in enumerate(self.cat_cols):
-            X_emb.append(self.embs[i][X_cat[col].values])
-
+        X_emb = [
+            self.embs[i][X_cat[col].values] for i, col in enumerate(self.cat_cols)
+        ]
         return np.hstack(X_emb)
 
     def fit_transform(self, X, y):
@@ -567,7 +559,7 @@ class FrequencyEncoder(base.BaseEstimator):
         self.cv = cv
 
     def __repr__(self):
-        return('FrequencyEncoder(cv={})'.format(self.cv))
+        return f'FrequencyEncoder(cv={self.cv})'
 
     def _get_frequency_encoder(self, x):
         """Return a mapping from categories to frequency.

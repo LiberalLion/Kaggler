@@ -95,18 +95,14 @@ class BaseAutoML(object):
         self.feature_selection = feature_selection
         self.fs_th = fs_th
         self.hyperparam_opt = hyperparam_opt
-        if minimize:
-            self.loss_sign = 1
-        else:
-            self.loss_sign = -1
-
+        self.loss_sign = 1 if minimize else -1
         self.n_random_col = n_random_col
         if random_state is None or isinstance(random_state, int):
             self.random_state = np.random.RandomState(random_state)
         elif isinstance(random_state, np.random.RandomState):
             self.random_state = random_state
         else:
-            raise ValueError('Invalid input for random_state: {}'.format(random_state))
+            raise ValueError(f'Invalid input for random_state: {random_state}')
 
         self.n_best = -1
         self.model = None
@@ -127,7 +123,7 @@ class BaseAutoML(object):
 
         if self.feature_selection:
             self.features = self.select_features(X_s, y_s)
-            logger.info('selecting top {} out of {} features'.format(len(self.features), X.shape[1]))
+            logger.info(f'selecting top {len(self.features)} out of {X.shape[1]} features')
         else:
             self.features = X.columns.tolist()
 
@@ -139,8 +135,8 @@ class BaseAutoML(object):
 
             self.params.update(hyperparams)
             self.n_best = trials.best_trial['result']['model'].best_iteration
-            logger.info('best parameters: {}'.format(self.params))
-            logger.info('best iterations: {}'.format(self.n_best))
+            logger.info(f'best parameters: {self.params}')
+            logger.info(f'best iterations: {self.n_best}')
 
         return self
 
@@ -169,7 +165,7 @@ class BaseAutoML(object):
 
         # trying for all features
         for i in range(1, self.n_random_col + 1):
-            random_col = '__random_{}__'.format(i)
+            random_col = f'__random_{i}__'
             X[random_col] = self.random_state.rand(X.shape[0])
             random_cols.append(random_col)
 
@@ -179,7 +175,7 @@ class BaseAutoML(object):
         imp = pd.DataFrame({'feature_importances': feature_importances, 'feature_names': X.columns.tolist()})
         imp = imp.sort_values('feature_importances', ascending=False).drop_duplicates()
 
-        if len(random_cols) == 0:
+        if not random_cols:
             imp = imp[imp['feature_importances'] > self.fs_th]
         else:
             th = max(imp.loc[imp.feature_names.isin(random_cols), 'feature_importances'].median(), self.fs_th)
@@ -237,15 +233,26 @@ class AutoXGB(BaseAutoML):
                 - (bool): a flag whether to minimize or maximize the metric
         """
 
-        assert metric in ['rmse', 'rmsle', 'mae', 'logloss', 'error', 'merror', 'mlogloss', 'auc', 'aucpr',
-                          'ndcg', 'map', 'poisson-nloglik', 'gamma-nloglik', 'cox-nloglik', 'gamma-deviance',
-                          'tweedie-nloglik'], 'Invalid metric: {}'.format(metric)
+        assert metric in [
+            'rmse',
+            'rmsle',
+            'mae',
+            'logloss',
+            'error',
+            'merror',
+            'mlogloss',
+            'auc',
+            'aucpr',
+            'ndcg',
+            'map',
+            'poisson-nloglik',
+            'gamma-nloglik',
+            'cox-nloglik',
+            'gamma-deviance',
+            'tweedie-nloglik',
+        ], f'Invalid metric: {metric}'
 
-        if metric in ['auc', 'aucpr', 'ndcg', 'map']:
-            minimize = False
-        else:
-            minimize = True
-
+        minimize = metric not in ['auc', 'aucpr', 'ndcg', 'map']
         return metric, minimize
 
     @staticmethod
@@ -367,14 +374,11 @@ class AutoLGB(BaseAutoML):
         elif metric in ['kldiv']:
             metric = 'kullback_leibler'
         else:
-            raise ValueError('{} is not a valid metric. See https://lightgbm.readthedocs.io/en/latest/Parameters.html '
-                             'for the full list of metrics available.'.format(metric))
+            raise ValueError(
+                f'{metric} is not a valid metric. See https://lightgbm.readthedocs.io/en/latest/Parameters.html for the full list of metrics available.'
+            )
 
-        if metric in ['auc', 'ndcg', 'map']:
-            minimize = False
-        else:
-            minimize = True
-
+        minimize = metric not in ['auc', 'ndcg', 'map']
         return metric, minimize
 
     @staticmethod

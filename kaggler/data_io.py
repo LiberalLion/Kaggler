@@ -206,7 +206,7 @@ def shuf_file(f, shuf_win):
             _, out = heapq.heappushpop(heap, (key, line))
             yield out
 
-    while len(heap) > 0:
+    while heap:
         _, out = heapq.heappop(heap)
         yield out
 
@@ -235,8 +235,7 @@ class PathJoiner:
 def stream_lines(filename, encoding='utf-8', ignore_errors=False):
     errors = 'ignore' if ignore_errors else 'strict'
     with open(filename, encoding=encoding, errors=errors) as file:
-        for line in file:
-            yield line
+        yield from file
 
 
 def stream_csv(filename, encoding='utf-8', ignore_errors=False):
@@ -245,35 +244,35 @@ def stream_csv(filename, encoding='utf-8', ignore_errors=False):
 
 
 def limit_stream(stream, count=1, skip=0):
-    for i in range(skip):
+    for _ in range(skip):
         next(stream)
-    for i in range(count):
+    for _ in range(count):
         yield next(stream)
 
 
 def save_obj(filename, obj):
     with open(filename, 'wb') as file:
         pickle.dump(obj, file, protocol=pickle.HIGHEST_PROTOCOL)
-    logger.info('saved : {}\t{}'.format(filename, type(obj)))
+    logger.info(f'saved : {filename}\t{type(obj)}')
 
 
 def load_obj(filename):
     with open(filename, 'rb') as file:
         obj = pickle.load(file)
-    logger.info('loaded : {}\t{}'.format(filename, type(obj)))
+    logger.info(f'loaded : {filename}\t{type(obj)}')
     return obj
 
 
 def save_array(filename, X):
     with h5py.File(filename, 'w') as file:
         file['data'] = X
-    logger.info('saved : {}\t{}\t{}'.format(filename, X.dtype, X.shape))
+    logger.info(f'saved : {filename}\t{X.dtype}\t{X.shape}')
 
 
 def load_array(filename):
     with h5py.File(filename, 'r') as file:
         X = file['data'][...]
-    logger.info('loaded : {}\t{}\t{}'.format(filename, X.dtype, X.shape))
+    logger.info(f'loaded : {filename}\t{X.dtype}\t{X.shape}')
     return X
 
 
@@ -283,7 +282,7 @@ def save_sparse(filename, X):
         file['data'] = X.data
         file['indices'] = X.indices
         file['indptr'] = X.indptr
-    logger.info('saved : {}\t{}\t{}'.format(filename, X.dtype, X.shape))
+    logger.info(f'saved : {filename}\t{X.dtype}\t{X.shape}')
 
 
 def load_sparse(filename):
@@ -293,7 +292,7 @@ def load_sparse(filename):
         indices = file['indices'][...]
         indptr = file['indptr'][...]
     X = sparse.csr_matrix((data, indices, indptr), shape=shape)
-    logger.info('loaded : {}\t{}\t{}'.format(filename, X.dtype, X.shape))
+    logger.info(f'loaded : {filename}\t{X.dtype}\t{X.shape}')
     return X
 
 
@@ -308,8 +307,7 @@ def load(filename):
     catalog = {'obj': load_obj, 'array': load_array, 'sparse': load_sparse}
     extension = filename.split('.')[-1]
     func = catalog[extension]
-    X = func(filename)
-    return X
+    return func(filename)
 
 
 class Clock(object):
@@ -326,8 +324,7 @@ class Clock(object):
         self.last = self.now
 
     def report(self):
-        txt = '\n[CLOCK]  [ {} ]    '
-        txt += 'since start: [ {} ]    since last: [ {} ]\n'
+        txt = '\n[CLOCK]  [ {} ]    ' + 'since start: [ {} ]    since last: [ {} ]\n'
         current = time.asctime().split()[3]
         since_start = datetime.timedelta(seconds=round(self.now - self.start))
         since_last = datetime.timedelta(seconds=round(self.now - self.last))
